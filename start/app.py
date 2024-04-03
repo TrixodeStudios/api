@@ -9,4 +9,4 @@ def postdata():
     return jsonify({"success": True, "msg": "Data received"}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
