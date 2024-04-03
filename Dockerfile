@@ -17,10 +17,10 @@ COPY . /app
 RUN pip install -r requirements.txt --no-cache-dir
 
 # Make port 5000 available to the world outside this container
-EXPOSE 5000
+
 
 # Define the command to run the app using Gunicorn, adjusted for the 'start' directory
-CMD ["python","gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "start.app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "start.app:app"]
 
 
 
