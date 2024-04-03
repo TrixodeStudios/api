@@ -1,22 +1,14 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8-slim-buster
+FROM python:3.9-alpine
 
-# FFmpeg installation
-RUN apt-get update && \
-    apt-get install -y ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
+ENV PYTHONFAULTHANDLER=1 \
+     PYTHONUNBUFFERED=1 \
+     PYTHONDONTWRITEBYTECODE=1 \
+     PIP_DISABLE_PIP_VERSION_CHECK=on
 
-# Set the working directory in the container to /app
+RUN apk --no-cache add ffmpeg
+
 WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt --no-cache-dir
 
-# Add current directory files to /app in container
-ADD . /app
-
-# Install necessary packages, Flask and ffmpeg-python
-RUN pip install --no-cache-dir flask werkzeug ffmpeg-python requests gunicorn
-
-# Make port 5000 available to the world outside this container
-# EXPOSE 5000
-
-# Run app.py (Flask server) when the container launches
-CMD gunicorn --bind 0.0.0.0:$PORT app:app
+CMD ["python", "app:app"]
