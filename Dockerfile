@@ -11,4 +11,4 @@ WORKDIR /app
 COPY . .
 RUN pip install -r requirements.txt --no-cache-dir
 
-CMD ["python", "app:app"]
+CMD ["python", "app.py"]
