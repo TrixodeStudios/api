@@ -11,7 +11,7 @@ RUN apk --no-cache add ffmpeg
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY . .
+COPY . /app
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt --no-cache-dir
