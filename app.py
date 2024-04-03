@@ -21,15 +21,6 @@ def create_app():
 
 app = create_app()
 
-
-
-@app.route('/postdata', methods=['POST'])
-def postdata():
-    data = request.json
-    print("Received data:", data)
-    return jsonify({"success": True, "msg": "Data received"}), 200
-
-
 @app.route('/', methods=['GET'])
 def homepage():
     return "Homepage"
