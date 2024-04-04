@@ -9,15 +9,12 @@ supabase: Client = create_client(url, key)
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
-
 # @app.route('/postdata', methods=['POST'])
 # def postdata():
 #     data = request.json
 #     print("Received data:", data)
 #     app.logger.info(f'Received data: {data}')  # Log the received data
 #     return jsonify({"success by Trixode-Studios": True, "msg": "Data received"}), 200
-
-
 @app.route('/postdata', methods=['POST'])
 def postdata():
     data = request.json
@@ -26,7 +23,7 @@ def postdata():
     
     bot_response_text = data['bot_response'][0] if data.get('bot_response') else None
     # Insert the data into the Supabase "messages" table
-      response = supabase.table("messages").insert({
+    response = supabase.table("messages").insert({
         "chat_id": data.get('chat_id'),
         "user_message": data.get('user_message'),
         "bot_response": bot_response_text,
@@ -38,6 +35,7 @@ def postdata():
     else:
         print(f"Failed to store data in Supabase: {response.status_code}")
         return jsonify({"success": False, "msg": "Failed to store data in Supabase"}), response.status_code
+
 
 
 
