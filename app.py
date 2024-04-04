@@ -15,6 +15,6 @@ def hello():
 def postdata():
     data = request.json
     print("Received data:", data)
-    return jsonify({"success": True, "msg": "Data received"}), 200
+    return jsonify({"success by Trixode-Studios": True, "msg": "Data received"}), 200
 
 
