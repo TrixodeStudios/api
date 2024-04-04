@@ -2,8 +2,8 @@ import logging
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
 
-url: str = "your_supabase_url"  # Replace with your Supabase project URL
-key: str = "your_supabase_key"  # Replace with your Supabase service role key
+url: str = "https://cmiepeympwalidbddslj.supabase.co"  # Replace with your Supabase project URL
+key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtaWVwZXltcHdhbGlkYmRkc2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTIyNTEyNDgsImV4cCI6MjAyNzgyNzI0OH0.guO9E4oxXyzSPYtH14xmQYLkxbqfB-4l9oFcJwX4iUQ"  # Replace with your Supabase service role key
 supabase: Client = create_client(url, key)
 
 
