@@ -15,6 +15,27 @@ logging.basicConfig(level=logging.INFO)
 #     print("Received data:", data)
 #     app.logger.info(f'Received data: {data}')  # Log the received data
 #     return jsonify({"success by Trixode-Studios": True, "msg": "Data received"}), 200
+# @app.route('/postdata', methods=['POST'])
+# def postdata():
+#     data = request.json
+#     app.logger.info(f"Received data: {data}")
+
+#     bot_response_text = data['bot_response'][0] if data.get('bot_response') else None
+
+#     # Perform the insert operation
+#     response_data, error = supabase.table("messages").insert({
+#         "chat_id": data.get('chat_id'),
+#         "user_message": data.get('user_message'),
+#         "bot_response": bot_response_text,
+#     }).execute()
+
+#     # Check if there was an error
+#     if error:
+#         app.logger.error(f"Failed to store data in Supabase: {error}")
+#         return jsonify({"success": False, "msg": "Failed to store data in Supabase"}), 500
+
+#     # If no error, proceed as successful
+#     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
 @app.route('/postdata', methods=['POST'])
 def postdata():
     data = request.json
@@ -31,10 +52,12 @@ def postdata():
 
     # Check if there was an error
     if error:
-        app.logger.error(f"Failed to store data in Supabase: {error}")
+        # Log the error in a way that handles the error object correctly
+        app.logger.error(f"Failed to store data in Supabase: {error.message if error else 'No error message'}")
         return jsonify({"success": False, "msg": "Failed to store data in Supabase"}), 500
 
     # If no error, proceed as successful
     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
+
 
 
