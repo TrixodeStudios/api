@@ -21,18 +21,16 @@ def postdata():
     app.logger.info(f'Received data: {data}')
     
     # Attempt to insert the data into Supabase
-    data_response, error = supabase.table("messages").insert({
+    data_response= supabase.table("messages").insert({
         "chat_id": data.get('chat_id'),
         "user_message": data.get('user_message'),
         "bot_response": data['bot_response'][0] if data.get('bot_response') else None,
     }).execute()
 
     # Check if there was an error
-    if error is None:
-        app.logger.info("Data stored in Supabase successfully")
-        return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
-    else:
-        app.logger.error(f"Failed to store data in Supabase: {error.message}")
-        return jsonify({"success": False, "msg": f"Failed to store data in Supabase: {error.message}"}), 500
+    if error:
+        app.logger.error(f"Failed to store data in Supabase. Error: {error}")
+        return jsonify({"success": False, "msg": "Failed to store data in Supabase"}), 500
+
 
 
