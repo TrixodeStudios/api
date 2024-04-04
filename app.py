@@ -62,11 +62,37 @@ logging.basicConfig(level=logging.INFO)
     
 #     # If no error, assume success
 #     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
+# @app.route('/postdata', methods=['POST'])
+# def postdata():
+#     data = request.json
+
+#     # Perform the insert operation
+#     response_data, error = supabase.table("messages").insert({
+#         "chat_id": data.get('chat_id'),
+#         "user_message": data.get('user_message'),
+#         "bot_response": data.get('bot_response')[0] if isinstance(data.get('bot_response'), list) else None,
+#     }).execute()
+
+#     # Check for actual error
+#     if error:
+#         # Improved error handling logic
+#         error_description = "Failed to store data in Supabase"
+#         if hasattr(error, 'message'):
+#             error_description += f": {error.message}"
+#         elif isinstance(error, tuple):
+#             error_description += f": {error[0]} with details {error[1]}"
+#         else:
+#             error_description += f": Unknown error format {error}"
+        
+#         app.logger.error(error_description)
+#         return jsonify({"success": False, "msg": error_description}), 500
+    
+#     # If the insertion was successful
+#     app.logger.info("Data stored in Supabase successfully")
+#     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
 @app.route('/postdata', methods=['POST'])
 def postdata():
     data = request.json
-
-    # Perform the insert operation
     response_data, error = supabase.table("messages").insert({
         "chat_id": data.get('chat_id'),
         "user_message": data.get('user_message'),
@@ -74,20 +100,13 @@ def postdata():
     }).execute()
 
     # Check for actual error
-    if error:
-        # Improved error handling logic
-        error_description = "Failed to store data in Supabase"
-        if hasattr(error, 'message'):
-            error_description += f": {error.message}"
-        elif isinstance(error, tuple):
-            error_description += f": {error[0]} with details {error[1]}"
-        else:
-            error_description += f": Unknown error format {error}"
-        
-        app.logger.error(error_description)
-        return jsonify({"success": False, "msg": error_description}), 500
+    if error is not None:
+        # Log the actual error details
+        error_details = error.get('message', 'No error message provided') if isinstance(error, dict) else str(error)
+        app.logger.error(f"Failed to store data in Supabase: {error_details}")
+        return jsonify({"success": False, "msg": f"Failed to store data in Supabase: {error_details}"}), 500
     
-    # If the insertion was successful
+    # Success
     app.logger.info("Data stored in Supabase successfully")
     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
 
