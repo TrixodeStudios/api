@@ -23,23 +23,44 @@ def postdata():
     data = request.json
     print("Received data:", data)
     app.logger.info(f'Received data: {data}')  # Log the received data
-    # Extract relevant information
-    chat_id = data.get('chat_id')
-    message = data.get('message')
-    sender_id = data.get('sender_id')
-
+    
+    bot_response_text = data['bot_response'][0] if data.get('bot_response') else None
     # Insert the data into the Supabase "messages" table
-    response = supabase.table("messages").insert({
-        "chat_id": chat_id,
-        "message": message,
-        "sender_id": sender_id
+      response = supabase.table("messages").insert({
+        "chat_id": data.get('chat_id'),
+        "user_message": data.get('user_message'),
+        "bot_response": bot_response_text,
     }).execute()
 
-    # Check if insertion was successful
     if response.status_code in range(200, 300):
-        return jsonify({"Success by Trixode-Studios": True, "msg": "Data received & Message stored in Supabase Infinitys data base."}), 200
+        print("Data stored in Supabase successfully")
+        return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
     else:
-        return jsonify({"success": False, "msg": "Failed to store message"}), response.status_code
+        print(f"Failed to store data in Supabase: {response.status_code}")
+        return jsonify({"success": False, "msg": "Failed to store data in Supabase"}), response.status_code
+
+
+@app.route('/postdata', methods=['POST'])
+def postdata():
+    data = request.json
+    print("Received data:", data)
+
+    # Assuming bot_response is an array, and you're interested in the first response.
+    bot_response_text = data['bot_response'][0] if data.get('bot_response') else None
+
+    # Insert the data into Supabase "messages" table
+    response = supabase.table("messages").insert({
+        "chat_id": data.get('chat_id'),
+        "user_message": data.get('user_message'),
+        "bot_response": bot_response_text,
+    }).execute()
+
+    if response.status_code in range(200, 300):
+        print("Data stored in Supabase successfully")
+        return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
+    else:
+        print(f"Failed to store data in Supabase: {response.status_code}")
+        return jsonify({"success": False, "msg": "Failed to store data in Supabase"}), response.status_code
 
 
 
