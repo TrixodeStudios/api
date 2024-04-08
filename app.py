@@ -7,42 +7,49 @@ key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 supabase: Client = create_client(url, key)
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
 
 @app.route('/postdata', methods=['POST'])
 def postdata():
     data = request.json
     chat_id = data.get('chat_id')
 
-    # Attempt to retrieve existing record for the chat_id
-    response = supabase.table("user_messages").select("*").eq("chat_id", chat_id).single().execute()
-    existing_data = response.data
+    # Attempt to retrieve existing records for the chat_id
+    response, error = supabase.table("user_messages").select("*").eq("chat_id", chat_id).execute()
 
+    if error:
+        app.logger.error(f"Error retrieving data from Supabase: {error}")
+        return jsonify({"success": False, "msg": "Error retrieving data from Supabase"}), 500
+
+    existing_data = response.data
     if existing_data:
-        # User exists, update their record
-        new_user_messages = existing_data["user_messages"] + [data.get("user_message")]
-        new_bot_responses = existing_data["bot_responses"] + [data.get("bot_response")[0] if isinstance(data.get("bot_response"), list) else None]
+        # Existing records found, assume the first one (should be only one due to chat_id uniqueness)
+        existing_record = existing_data[0]
+        new_user_messages = existing_record["user_messages"] + [data.get("user_message")]
+        new_bot_responses = existing_record["bot_responses"] + [data.get("bot_response")[0] if isinstance(data.get("bot_response"), list) else None]
         
-        response = supabase.table("user_messages").update({
+        update_response, update_error = supabase.table("user_messages").update({
             "user_messages": new_user_messages,
             "bot_responses": new_bot_responses
         }).eq("chat_id", chat_id).execute()
     else:
-        # New user, insert their first message
-        response = supabase.table("user_messages").insert({
+        # No records found, this is a new user
+        update_response, update_error = supabase.table("user_messages").insert({
             "chat_id": chat_id,
             "user_messages": [data.get("user_message")],
             "bot_responses": [data.get("bot_response")[0] if isinstance(data.get("bot_response"), list) else None],
             "user_status": "new"
         }).execute()
 
-    error = response.error
-    if error:
-        error_details = error.get('message', 'Unknown error') if error else 'No error message'
-        app.logger.error(f"Failed to store data in Supabase: {error_details}")
-        return jsonify({"success": False, "msg": f"Failed to store data in Supabase: {error_details}"}), 500
+    if update_error:
+        app.logger.error(f"Failed to store data in Supabase: {update_error.get('message', 'Unknown error')}")
+        return jsonify({"success": False, "msg": f"Failed to store data in Supabase: {update_error.get('message', 'Unknown error')}"}), 500
 
     app.logger.info("Data stored in Supabase successfully")
     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 
 
