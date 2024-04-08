@@ -30,10 +30,9 @@ def postdata():
 
     # Proceed with your logic for updating or inserting data as needed...
     return jsonify({"success": True, "msg": "Operation successful"}), 200
-
-
-
-
+    
+    if __name__ == '__main__':
+    app.run(debug=True)
 
 
 
