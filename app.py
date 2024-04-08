@@ -6,109 +6,45 @@ url: str = "https://cmiepeympwalidbddslj.supabase.co"  # Replace with your Supab
 key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtaWVwZXltcHdhbGlkYmRkc2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTIyNTEyNDgsImV4cCI6MjAyNzgyNzI0OH0.guO9E4oxXyzSPYtH14xmQYLkxbqfB-4l9oFcJwX4iUQ"  # Replace with your Supabase service role key
 supabase: Client = create_client(url, key)
 
-
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
-# @app.route('/postdata', methods=['POST'])
-# def postdata():
-#     data = request.json
-#     print("Received data:", data)
-#     app.logger.info(f'Received data: {data}')  # Log the received data
-#     return jsonify({"success by Trixode-Studios": True, "msg": "Data received"}), 200
-# @app.route('/postdata', methods=['POST'])
-# def postdata():
-#     data = request.json
-#     app.logger.info(f"Received data: {data}")
 
-#     bot_response_text = data['bot_response'][0] if data.get('bot_response') else None
-
-#     # Perform the insert operation
-#     response_data, error = supabase.table("messages").insert({
-#         "chat_id": data.get('chat_id'),
-#         "user_message": data.get('user_message'),
-#         "bot_response": bot_response_text,
-#     }).execute()
-
-#     # Check if there was an error
-#     if error:
-#         app.logger.error(f"Failed to store data in Supabase: {error}")
-#         return jsonify({"success": False, "msg": "Failed to store data in Supabase"}), 500
-
-#     # If no error, proceed as successful
-#     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
-# @app.route('/postdata', methods=['POST'])
-# def postdata():
-#     data = request.json
-#     # Process the incoming data...
-    
-#     # Example insert operation
-#     response_data, error = supabase.table("messages").insert({
-#         "chat_id": data.get('chat_id'),
-#         "user_message": data.get('user_message'),
-#         "bot_response": data.get('bot_response'),
-#     }).execute()
-    
-#     # Error handling
-#     if error:
-#         # Adapt error logging based on the type of the error object
-#         error_description = f"Failed to store data in Supabase: {error}"
-#         if hasattr(error, 'message'):
-#             error_description = f"Failed to store data in Supabase: {error.message}"
-#         elif isinstance(error, tuple):
-#             error_description = f"Failed to store data in Supabase: {error[0]} with details {error[1]}"
-        
-#         app.logger.error(error_description)
-#         return jsonify({"success": False, "msg": "Failed to store data in Supabase"}), 500
-    
-#     # If no error, assume success
-#     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
-# @app.route('/postdata', methods=['POST'])
-# def postdata():
-#     data = request.json
-
-#     # Perform the insert operation
-#     response_data, error = supabase.table("messages").insert({
-#         "chat_id": data.get('chat_id'),
-#         "user_message": data.get('user_message'),
-#         "bot_response": data.get('bot_response')[0] if isinstance(data.get('bot_response'), list) else None,
-#     }).execute()
-
-#     # Check for actual error
-#     if error:
-#         # Improved error handling logic
-#         error_description = "Failed to store data in Supabase"
-#         if hasattr(error, 'message'):
-#             error_description += f": {error.message}"
-#         elif isinstance(error, tuple):
-#             error_description += f": {error[0]} with details {error[1]}"
-#         else:
-#             error_description += f": Unknown error format {error}"
-        
-#         app.logger.error(error_description)
-#         return jsonify({"success": False, "msg": error_description}), 500
-    
-#     # If the insertion was successful
-#     app.logger.info("Data stored in Supabase successfully")
-#     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
 @app.route('/postdata', methods=['POST'])
 def postdata():
     data = request.json
-    response_data, error = supabase.table("messages").insert({
-        "chat_id": data.get('chat_id'),
-        "user_message": data.get('user_message'),
-        "bot_response": data.get('bot_response')[0] if isinstance(data.get('bot_response'), list) else None,
-    }).execute()
+    chat_id = data.get('chat_id')
 
-    # Check for actual error
-    if error is not None:
-        # Log the actual error details
-        error_details = error.get('message', 'No error message provided') if isinstance(error, dict) else str(error)
+    # Attempt to retrieve existing record for the chat_id
+    response = supabase.table("user_messages").select("*").eq("chat_id", chat_id).single().execute()
+    existing_data = response.data
+
+    if existing_data:
+        # User exists, update their record
+        new_user_messages = existing_data["user_messages"] + [data.get("user_message")]
+        new_bot_responses = existing_data["bot_responses"] + [data.get("bot_response")[0] if isinstance(data.get("bot_response"), list) else None]
+        
+        response = supabase.table("user_messages").update({
+            "user_messages": new_user_messages,
+            "bot_responses": new_bot_responses
+        }).eq("chat_id", chat_id).execute()
+    else:
+        # New user, insert their first message
+        response = supabase.table("user_messages").insert({
+            "chat_id": chat_id,
+            "user_messages": [data.get("user_message")],
+            "bot_responses": [data.get("bot_response")[0] if isinstance(data.get("bot_response"), list) else None],
+            "user_status": "new"
+        }).execute()
+
+    error = response.error
+    if error:
+        error_details = error.get('message', 'Unknown error') if error else 'No error message'
         app.logger.error(f"Failed to store data in Supabase: {error_details}")
         return jsonify({"success": False, "msg": f"Failed to store data in Supabase: {error_details}"}), 500
-    
-    # Success
+
     app.logger.info("Data stored in Supabase successfully")
     return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
+
+
 
 
 
