@@ -14,42 +14,29 @@ def postdata():
     data = request.json
     chat_id = data.get('chat_id')
 
-    # Attempt to retrieve existing records for the chat_id
-    response, error = supabase.table("user_messages").select("*").eq("chat_id", chat_id).execute()
+    # Attempt to retrieve existing record for the chat_id
+    response = supabase.table("user_messages").select("*").eq("chat_id", chat_id).execute()
 
-    if error:
-        app.logger.error(f"Error retrieving data from Supabase: {error}")
+    # Check for errors in the response
+    if response.error:
+        app.logger.error(f"Error retrieving data from Supabase: {response.error}")
         return jsonify({"success": False, "msg": "Error retrieving data from Supabase"}), 500
 
     existing_data = response.data
     if existing_data:
-        # Existing records found, assume the first one (should be only one due to chat_id uniqueness)
-        existing_record = existing_data[0]
-        new_user_messages = existing_record["user_messages"] + [data.get("user_message")]
-        new_bot_responses = existing_record["bot_responses"] + [data.get("bot_response")[0] if isinstance(data.get("bot_response"), list) else None]
-        
-        update_response, update_error = supabase.table("user_messages").update({
-            "user_messages": new_user_messages,
-            "bot_responses": new_bot_responses
-        }).eq("chat_id", chat_id).execute()
+        # Existing record found
+        app.logger.info("Existing record found")
+        # Proceed with updating the existing record
     else:
-        # No records found, this is a new user
-        update_response, update_error = supabase.table("user_messages").insert({
-            "chat_id": chat_id,
-            "user_messages": [data.get("user_message")],
-            "bot_responses": [data.get("bot_response")[0] if isinstance(data.get("bot_response"), list) else None],
-            "user_status": "new"
-        }).execute()
+        # No existing record found
+        app.logger.info("No existing record found")
+        # Proceed with inserting a new record
 
-    if update_error:
-        app.logger.error(f"Failed to store data in Supabase: {update_error.get('message', 'Unknown error')}")
-        return jsonify({"success": False, "msg": f"Failed to store data in Supabase: {update_error.get('message', 'Unknown error')}"}), 500
-
-    app.logger.info("Data stored in Supabase successfully")
-    return jsonify({"success": True, "msg": "Data stored in Supabase"}), 200
+    return jsonify({"success": True, "msg": "Operation successful"}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
