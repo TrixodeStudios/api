@@ -48,7 +48,7 @@ def postdata():
 
     # Success response
     app.logger.info("Data stored in Supabase successfully")
-    return jsonify({"success": True, "msg": "Data stored in Supabase successfully"}), 200
+    return jsonify({"success": True, "msg": "Data stored in Supabase successfully by Trixode-Studios"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
