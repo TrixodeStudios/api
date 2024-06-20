@@ -237,17 +237,18 @@ def update_or_insert_messages(data):
     if not isinstance(bot_response, list):
         bot_response = [bot_response]
 
-    response = supabase.table("user_messages").select("*").eq("chat_id", chat_id).execute()
+    # Use "messages" as the table name
+    response = supabase.table("messages").select("*").eq("chat_id", chat_id).execute()
     existing_data = response.data
 
     if existing_data:
         existing_record = existing_data[0]
-        supabase.table("user_messages").update({
+        supabase.table("messages").update({ # Use "messages" here
             "user_messages": existing_record["user_messages"] + [user_message],
             "bot_responses": existing_record["bot_responses"] + bot_response
         }).eq("chat_id", chat_id).execute()
     else:
-        supabase.table("user_messages").insert({
+        supabase.table("messages").insert({ # Use "messages" here
             "chat_id": chat_id,
             "nickname": nickname,
             "user_messages": [user_message],
