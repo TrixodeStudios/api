@@ -230,25 +230,24 @@ logging.basicConfig(level=logging.INFO)
 def update_or_insert_messages(data):
     chat_id = data.get('chat_id')
     nickname = data.get('nickname')
-    user_message = data.get("user_message")
-    bot_response = data.get("bot_response")
+    user_message = data.get("messages").get("user") # Correctly access user message
+    bot_response = data.get("messages").get("gemini") # Correctly access bot response
 
     # Ensure bot_response is a list
     if not isinstance(bot_response, list):
         bot_response = [bot_response]
 
-    # Use "messages" as the table name
     response = supabase.table("messages").select("*").eq("chat_id", chat_id).execute()
     existing_data = response.data
 
     if existing_data:
         existing_record = existing_data[0]
-        supabase.table("messages").update({ # Use "messages" here
+        supabase.table("messages").update({ 
             "user_messages": existing_record["user_messages"] + [user_message],
             "bot_responses": existing_record["bot_responses"] + bot_response
         }).eq("chat_id", chat_id).execute()
     else:
-        supabase.table("messages").insert({ # Use "messages" here
+        supabase.table("messages").insert({ 
             "chat_id": chat_id,
             "nickname": nickname,
             "user_messages": [user_message],
